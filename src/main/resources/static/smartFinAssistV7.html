@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智能理财助手</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/marked/15.0.6/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            touch-action: manipulation;
+            overscroll-behavior: contain;
+        }
+
+        .message-container {
+            max-height: calc(100vh - 170px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .message-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .message-container::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 2px;
+        }
+
+        .user-message {
+            border-radius: 18px 4px 18px 18px;
+            background: linear-gradient(135deg, #6b8cff, #3d6aff);
+            color: white;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.15);
+        }
+
+        .ai-message {
+            border-radius: 4px 18px 18px 18px;
+            background: linear-gradient(135deg, #f0f7ff, #e6f0ff);
+            box-shadow: 0 4px 12px rgba(61, 106, 255, 0.1);
+            border: 1px solid rgba(61, 106, 255, 0.1);
+        }
+
+        /* 风险提示样式 */
+        .risk-disclaimer {
+            border-left: 4px solid #ef4444;
+            background-color: #fef2f2;
+            padding: 12px 16px;
+            margin: 16px 0 8px 0;
+            border-radius: 0 8px 8px 0;
+            color: #b91c1c;
+            font-size: 0.9em;
+        }
+
+        .risk-disclaimer p {
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+
+        .risk-title {
+            font-weight: 600;
+            color: #b91c1c;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .risk-title svg {
+            margin-right: 6px;
+        }
+
+        /* Markdown内容样式优化 */
+        .ai-message-content h1, .ai-message-content h2, .ai-message-content h3 {
+            font-weight: 600;
+            margin: 1.2em 0 0.8em;
+            color: #1e3a8a;
+        }
+
+        .ai-message-content h1 {
+            font-size: 1.5em;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 0.3em;
+        }
+
+        .ai-message-content h2 {
+            font-size: 1.3em;
+        }
+
+        .ai-message-content h3 {
+            font-size: 1.1em;
+        }
+
+        .ai-message-content p {
+            margin: 0.8em 0;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .ai-message-content ul, .ai-message-content ol {
+            padding-left: 1.8em;
+            margin: 1em 0;
+        }
+
+        .ai-message-content li {
+            margin-bottom: 0.5em;
+            line-height: 1.5;
+        }
+
+        .ai-message-content ul {
+            list-style-type: disc;
+        }
+
+        .ai-message-content ol {
+            list-style-type: decimal;
+        }
+
+        .ai-message-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2em 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .ai-message-content th {
+            background-color: #3d6aff;
+            color: white;
+            font-weight: 500;
+            padding: 0.8em;
+            text-align: left;
+        }
+
+        .ai-message-content td {
+            padding: 0.8em;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ai-message-content tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .ai-message-content tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .ai-message-content blockquote {
+            border-left: 4px solid #3d6aff;
+            background-color: #f0f7ff;
+            padding: 0.8em 1em;
+            margin: 1em 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .ai-message-content code {
+            background-color: #e2e8f0;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .ai-message-content pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2em 0;
+        }
+
+        .ai-message-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .ai-message-content strong {
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .ai-message-content a {
+            color: #3d6aff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .ai-message-content a:hover {
+            text-decoration: underline;
+        }
+
+        .thinking-dots span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .thinking-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .thinking-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .example-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+        }
+
+        .example-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #3d6aff;
+        }
+
+        .chart-container {
+            height: 250px;
+            width: 100%;
+        }
+
+        .suggestions-container {
+            background: linear-gradient(to bottom, rgba(249, 250, 251, 0.9), rgba(249, 250, 251, 1));
+            backdrop-filter: blur(10px);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 深度思考内容样式 */
+        .reasoning-container {
+            margin-top: 16px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 12px;
+        }
+
+        .reasoning-toggle {
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+            color: #3d6aff;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .reasoning-toggle svg {
+            transition: transform 0.3s ease;
+            margin-right: 6px;
+        }
+
+        .reasoning-toggle.collapsed svg {
+            transform: rotate(-90deg);
+        }
+
+        .reasoning-content {
+            background-color: rgba(241, 245, 249, 0.6);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.9em;
+            color: #475569;
+            border-left: 3px solid #94a3b8;
+        }
+
+        .reasoning-content p {
+            margin: 0.5em 0;
+            line-height: 1.5;
+        }
+
+        .reasoning-title {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .reasoning-title svg {
+            margin-right: 6px;
+            color: #64748b;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 480px) {
+            .user-message, .ai-message {
+                max-width: 90%;
+            }
+
+            .ai-message-content table {
+                font-size: 0.9em;
+            }
+
+            .example-card {
+                padding: 0.8em;
+            }
+
+            .risk-disclaimer {
+                padding: 10px 12px;
+                font-size: 0.85em;
+            }
+
+            .reasoning-content {
+                padding: 10px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+<div id="app" class="flex flex-col h-screen max-w-md mx-auto shadow-lg bg-white">
+    <!-- 顶部导航 -->
+    <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <div class="font-bold text-lg">智能理财助手</div>
+                <div class="text-xs opacity-80">在线为您服务</div>
+            </div>
+        </div>
+        <!-- 新建对话按钮 -->
+        <button class="btn btn-ghost btn-circle text-white" @click="clearMessages" title="新建对话">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- 消息区域 -->
+    <div class="message-container flex-1 overflow-y-auto p-4 bg-gray-50 pb-20" ref="messageContainer">
+        <!-- 欢迎消息 -->
+        <div v-if="showWelcome" class="text-center py-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">智能理财助手</h1>
+            <p class="text-gray-600 mb-8">为您提供专业的市场分析、金融知识解读和产品建议</p>
+
+            <div class="suggestions-container rounded-2xl p-5 mb-6">
+                <h2 class="font-bold text-gray-700 mb-4">请选择您感兴趣的话题：</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div
+                            v-for="(example, index) in exampleQuestions"
+                            :key="index"
+                            class="example-card bg-white rounded-xl p-4 text-sm"
+                            @click="sendExample(example.text)"
+                    >
+                        <div class="font-bold mb-1 text-gray-800">{{ example.title }}</div>
+                        <div class="text-gray-600 text-xs">{{ example.text }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center mt-8">
+                <div class="flex items-center mb-2">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span class="text-sm text-gray-600">在线服务</span>
+                </div>
+                <p class="text-xs text-gray-500">所有数据均经过加密处理，保障您的隐私安全</p>
+            </div>
+        </div>
+
+        <!-- 消息列表 -->
+        <template v-for="(message, index) in messages" :key="index">
+            <!-- 用户消息 -->
+            <div v-if="message.role === 'user'" class="flex justify-end mb-4">
+                <div class="user-message px-4 py-3 max-w-[80%]">
+                    <div class="text-white">{{ message.content }}</div>
+                </div>
+            </div>
+
+            <!-- AI消息 -->
+            <div v-else-if="message.role === 'assistant'" class="flex justify-start mb-4">
+                <div class="ai-message px-4 py-3 max-w-[85%]">
+                    <div v-if="message.type === 'text'" class="text-gray-800">
+                        <!-- 在思考内容区域添加加载状态 -->
+                        <div v-if="message.reasoningContent" class="reasoning-container">
+                            <div
+                                    class="reasoning-toggle"
+                                    :class="{'collapsed': !message.showReasoning}"
+                                    @click="message.showReasoning = !message.showReasoning"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                                <span>{{ message.showReasoning ? '收起思考过程' : '查看深度思考' }}</span>
+                            </div>
+
+                            <div v-if="message.showReasoning" class="reasoning-content">
+                                <div v-if="message.isReceivingReasoning" class="flex items-center py-1">
+                                    <div class="thinking-dots">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <span class="ml-2 text-gray-500">思考中...</span>
+                                </div>
+                                <div v-else>
+                                    <div class="reasoning-title">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                        </svg>
+                                        模型思考过程
+                                    </div>
+                                    <div v-html="renderMarkdown(message.reasoningContent)"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-message-content" v-html="renderMarkdown(message.content)"></div>
+                    </div>
+
+                    <div v-else-if="message.type === 'chart'" class="w-full">
+                        <div class="ai-message-content" v-html="renderMarkdown(message.content)"></div>
+                        <div class="chart-container" :id="'chart-'+index"></div>
+                    </div>
+
+                    <div v-else-if="message.type === 'loading'" class="flex items-center py-2">
+                        <div class="thinking-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="ml-2 text-gray-500">思考中...</span>
+                    </div>
+
+                    <!-- 风险提示和免责声明 -->
+                    <div v-if="message.showDisclaimer" class="risk-disclaimer">
+                        <div class="risk-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            风险提示
+                        </div>
+                        <p>市场有风险，投资需谨慎。历史业绩不代表未来表现。</p>
+                        <div class="risk-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            免责声明
+                        </div>
+                        <p>本分析仅供参考，不构成任何投资建议！</p>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="border-t border-gray-200 bg-white p-3 sticky bottom-0">
+        <div class="flex items-center">
+            <input
+                    type="text"
+                    v-model="inputMessage"
+                    placeholder="请输入您的问题..."
+                    class="flex-1 input input-bordered rounded-full bg-gray-100 border-none pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                    @keyup.enter="sendMessage"
+            >
+            <button
+                    class="send-btn ml-2 bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-md"
+                    :disabled="isSending || !inputMessage.trim()"
+                    @click="sendMessage"
+            >
+                <svg v-if="!isSending" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+                <div v-else class="loader"></div>
+            </button>
+        </div>
+        <div class="text-xs text-gray-500 mt-2 text-center">
+            智能理财助手为您提供专业的理财建议
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.global.js"></script>
+<script>
+    const { createApp, ref, onMounted, watch, nextTick } = Vue;
+
+    createApp({
+        setup() {
+            const inputMessage = ref('');
+            const messages = ref([]);
+            const isSending = ref(false);
+            const messageContainer = ref(null);
+            const showWelcome = ref(true);
+            const exampleQuestions = ref([
+                { title: "市场分析", text: "最近市场表现如何？" },
+                { title: "金融知识", text: "请解释什么是ETF基金？" },
+                { title: "产品分析", text: "分析一下基金产品易方达新能源基金" },
+                { title: "产品对比", text: "比较一下汇添富消费基金和招商中证白酒基金的差异" }
+            ]);
+            const apiUrl = ref('http://127.0.0.1:8080/smartFin/assistChat');
+            const userId = ref('U1001'); // 固定用户ID
+            const isInThinkTag = ref(false);
+            const abortController = ref(null);
+            // 新增会话ID管理
+            const sessionId = ref(localStorage.getItem('sessionId') || '');
+
+            // 添加初始化会话函数
+            const initSession = async () => {
+                try {
+                    const headers = {
+                        'Content-Type': 'application/json'
+                    };
+                    if (sessionId.value) {
+                        headers['X-Session-Id'] = sessionId.value;
+                    }
+
+                    const response = await fetch('/smartFin/initSession', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            userId: userId.value
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`初始化会话失败: ${response.status}`);
+                    }
+
+                    // 更新会话ID
+                    const newSessionId = response.headers.get('X-Session-Id');
+                    if (newSessionId) {
+                        sessionId.value = newSessionId;
+                        localStorage.setItem('sessionId', newSessionId);
+                        console.log('会话初始化成功，Session ID:', newSessionId);
+                    }
+                } catch (error) {
+                    console.error('初始化会话出错:', error);
+                }
+            };
+
+            // 在页面加载时调用初始化会话
+            onMounted(() => {
+                localStorage.removeItem('sessionId');
+                initSession();
+            });
+
+            // 滚动到底部
+            const scrollToBottom = () => {
+                nextTick(() => {
+                    if (messageContainer.value) {
+                        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+                    }
+                });
+            };
+
+            // 渲染Markdown
+            const renderMarkdown = (content) => {
+                return marked.parse(content);
+            };
+
+            // 发送消息
+            const sendMessage = async () => {
+                if (!inputMessage.value.trim() || isSending.value) return;
+
+                // 重置思考标签状态
+                isInThinkTag.value = false;
+
+                showWelcome.value = false;
+
+                // 添加用户消息
+                const userMessage = {
+                    role: 'user',
+                    type: 'text',
+                    content: inputMessage.value,
+                    showDisclaimer: false
+                };
+                messages.value.push(userMessage);
+                scrollToBottom();
+
+                // 添加AI加载状态
+                const aiLoadingMessage = {
+                    role: 'assistant',
+                    type: 'loading',
+                    content: '',
+                };
+                messages.value.push(aiLoadingMessage);
+                scrollToBottom();
+
+                // 清空输入框
+                const currentMessage = inputMessage.value;
+                inputMessage.value = '';
+                isSending.value = true;
+
+                // 滚动到底部
+                scrollToBottom();
+
+                // 跟踪是否已开始接收最终答案
+                let hasStartedContent = false;
+
+                // 创建AI消息对象（初始为空）
+                let aiMessage = null;
+                let aiMessageIndex = -1;
+
+                try {
+                    // 创建AbortController以便可以取消请求
+                    abortController.value = new AbortController();
+
+                    // 发送请求到服务端
+                    const response = await fetch(apiUrl.value, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Session-Id': sessionId.value
+                        },
+                        body: JSON.stringify({
+                            message: currentMessage,
+                            userId: userId.value
+                        }),
+                        signal: abortController.value.signal
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    // 读取流数据
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+
+                    // 从响应头获取会话ID
+                    const newSessionId = response.headers.get('X-Session-Id');
+                    if (newSessionId && newSessionId !== sessionId.value) {
+                        sessionId.value = newSessionId;
+                        localStorage.setItem('sessionId', newSessionId);
+                    }
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+
+                        // 处理缓冲区中的消息（SSE格式）
+                        let eventEndIndex;
+                        while ((eventEndIndex = buffer.indexOf('\n\n')) !== -1) {
+                            const eventData = buffer.substring(0, eventEndIndex);
+                            buffer = buffer.substring(eventEndIndex + 2);
+
+                            // 解析事件数据
+                            const lines = eventData.split('\n');
+                            for (const line of lines) {
+                                if (line.startsWith('data:')) {
+                                    const data = line.substring(5).trim();
+                                    if (data === '[DONE]') {
+                                        // 结束标志
+                                        break;
+                                    }
+
+                                    try {
+                                        // 解析JSON
+                                        const parsed = parseSSEData(data)
+
+                                        // 在流处理循环中修改：
+                                        if (parsed.content || parsed.reasoning_content) {
+                                            // 如果是第一次接收到内容
+                                            if (!hasStartedContent) {
+                                                // 移除加载状态消息
+                                                messages.value.pop();
+
+                                                // 创建AI消息 - 即使只有思考内容也创建
+                                                aiMessage = {
+                                                    role: 'assistant',
+                                                    type: parsed.chartOption ? 'chart' : 'text',
+                                                    content: parsed.content || '',
+                                                    reasoningContent: parsed.reasoning_content || '',
+                                                    showReasoning: true, // 默认展开思考内容
+                                                    chartOption: parsed.chartOption || null,
+                                                    showDisclaimer: false
+                                                };
+                                                messages.value.push(aiMessage);
+                                                aiMessageIndex = messages.value.length - 1;
+                                                hasStartedContent = true;
+                                            }
+                                            // 如果已开始接收，则追加内容
+                                            else {
+                                                if (parsed.content) {
+                                                    aiMessage.content += parsed.content;
+                                                    console.log('append content:', aiMessage.content);
+                                                }
+                                                if (parsed.reasoning_content) {
+                                                    aiMessage.reasoningContent += parsed.reasoning_content;
+                                                }
+
+                                                // 更新图表数据
+                                                if (parsed.chartOption) {
+                                                    aiMessage.type = 'chart';
+                                                    aiMessage.chartOption = parsed.chartOption;
+                                                }
+
+                                                messages.value[aiMessageIndex] = {...aiMessage};
+                                                scrollToBottom();
+                                            }
+                                        }
+
+                                        // 处理图表数据（如果有）
+                                        if (parsed.chartOption) {
+                                            // 确保消息已创建
+                                            if (!aiMessage) {
+                                                // 移除加载状态消息
+                                                messages.value.pop();
+
+                                                // 创建真正的AI消息
+                                                aiMessage = {
+                                                    role: 'assistant',
+                                                    type: 'chart',
+                                                    content: '',
+                                                    reasoningContent: parsed.reasoning_content || '',
+                                                    showReasoning: false,
+                                                    chartOption: parsed.chartOption
+                                                };
+                                                messages.value.push(aiMessage);
+                                                aiMessageIndex = messages.value.length - 1;
+
+                                                hasStartedContent = true;
+                                            } else {
+                                                aiMessage.type = 'chart';
+                                                aiMessage.chartOption = parsed.chartOption;
+                                                if (parsed.reasoning_content) {
+                                                    aiMessage.reasoningContent += parsed.reasoning_content;
+                                                }
+                                                messages.value[aiMessageIndex] = {...aiMessage};
+                                            }
+
+                                            // 渲染图表
+                                            nextTick(() => {
+                                                renderChart('chart-' + aiMessageIndex, parsed.chartOption);
+                                            });
+                                        }
+
+                                        scrollToBottom();
+                                    } catch (e) {
+                                        console.error('解析JSON失败:', e);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 如果流结束但从未接收到最终答案（仅收到推理数据）
+                    if (!hasStartedContent) {
+                        // 移除加载状态消息
+                        messages.value.pop();
+
+                        // 添加默认消息
+                        messages.value.push({
+                            role: 'assistant',
+                            type: 'text',
+                            content: '收到空响应，请重试或联系支持',
+                            reasoningContent: '',
+                            showReasoning: false
+                        });
+                    }
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('请求错误:', error);
+                        // 移除加载状态
+                        messages.value.pop();
+
+                        // 添加错误消息
+                        messages.value.push({
+                            role: 'assistant',
+                            type: 'text',
+                            content: '抱歉，处理您的请求时出错了。请稍后再试。',
+                            reasoningContent: '',
+                            showReasoning: false
+                        });
+                    }
+                } finally {
+                    isSending.value = false;
+                    if(aiMessage){
+                        aiMessage.showDisclaimer = true;
+                        aiMessage.showReasoning = false;
+                        messages.value[aiMessageIndex] = {...aiMessage};
+                        scrollToBottom();
+                    }
+                }
+            };
+
+            const parseSSEData = (data) => {
+                try {
+                    const parsed = JSON.parse(data)
+                    let reasoningContent = ''
+                    let content = ''
+
+                    // 处理直接返回的思考内容
+                    if (parsed.choices?.[0]?.delta?.reasoning_content) {
+                        reasoningContent = parsed.choices[0].delta.reasoning_content
+                    }
+
+                    // 处理普通内容
+                    content = parsed.choices?.[0]?.delta?.content || ''
+
+                    // 处理标签包裹的思考内容
+                    if (content.includes('<think>')) {
+                        isInThinkTag.value = true
+                        const startIndex = content.indexOf('<think>') + '<think>'.length
+                        reasoningContent += content.substring(startIndex)
+                        content = content.substring(0, content.indexOf('<think>'))
+                    }
+
+                    if (content.includes('</think>')) {
+                        isInThinkTag.value = false
+                        const endIndex = content.indexOf('</think>')
+                        reasoningContent += content.substring(0, endIndex)
+                        content = content.substring(endIndex + '</think>'.length)
+                    }
+
+                    // 处理跨数据包的思考内容
+                    if (isInThinkTag.value) {
+                        reasoningContent += content
+                        content = ''
+                    }
+
+                    return {
+                        id: parsed.id,
+                        created: parsed.created,
+                        model: parsed.model,
+                        reasoning_content: reasoningContent,
+                        content: content,
+                        chartOption: parsed.chartOption // 保留图表数据
+                    }
+                } catch (e) {
+                    console.error('解析JSON失败:', e)
+                    return null
+                }
+            }
+
+            // 发送示例问题
+            const sendExample = (text) => {
+                inputMessage.value = text;
+                sendMessage();
+            };
+
+            // 清空对话
+            const clearMessages = () => {
+                messages.value = [];
+                showWelcome.value = true;
+                inputMessage.value = '';
+                sessionId.value = '';
+                //localStorage.removeItem('sessionId');
+            };
+
+            // 渲染图表
+            const renderChart = (index) => {
+                const chartDom = document.getElementById('chart-'+index);
+                if (!chartDom) return;
+
+                const chart = echarts.init(chartDom);
+
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: '{b}: {c}%'
+                    },
+                    legend: {
+                        data: ['收益率'],
+                        bottom: 10
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '15%',
+                        top: '5%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                        axisLine: {
+                            lineStyle: {
+                                color: '#9ca3af'
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value}%'
+                        },
+                        axisLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#9ca3af'
+                            }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                type: 'dashed'
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: '收益率',
+                            type: 'line',
+                            data: [2.5, 4.2, 1.8, 3.5, 5.1, 4.8],
+                            smooth: true,
+                            lineStyle: {
+                                width: 3,
+                                color: '#3d6aff'
+                            },
+                            itemStyle: {
+                                color: '#3d6aff'
+                            },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [{
+                                        offset: 0, color: 'rgba(61, 106, 255, 0.3)'
+                                    }, {
+                                        offset: 1, color: 'rgba(61, 106, 255, 0.05)'
+                                    }]
+                                }
+                            },
+                            markPoint: {
+                                data: [
+                                    { type: 'max', name: '最大值' },
+                                    { type: 'min', name: '最小值' }
+                                ]
+                            }
+                        }
+                    ]
+                };
+
+                chart.setOption(option);
+
+                // 响应式调整
+                window.addEventListener('resize', () => {
+                    chart.resize();
+                });
+            };
+
+            // 监听消息变化，自动滚动
+            watch(messages, () => {
+                scrollToBottom();
+            }, { deep: true });
+
+            return {
+                inputMessage,
+                messages,
+                isSending,
+                messageContainer,
+                showWelcome,
+                exampleQuestions,
+                sendMessage,
+                sendExample,
+                clearMessages,
+                renderChart,
+                renderMarkdown,
+                sessionId
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

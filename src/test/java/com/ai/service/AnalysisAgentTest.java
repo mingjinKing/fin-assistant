@@ -1,0 +1,22 @@
+package com.ai.service;
+
+import com.ai.entity.ProductInfo;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AnalysisAgentTest {
+
+    @Test
+    public void testHandle() throws Exception {
+        String prodInfoList = "[{\"productCode\":\"F005\",\"productName\":\"广发消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"广发基金\",\"manager\":\"经理张伟\",\"netValue\":3.8537,\"accumNetValue\":8.4810,\"establishDate\":\"2022-07-27\",\"fundSize\":356.83,\"riskLevel\":\"R2\",\"annualReturn\":-17.93},{\"productCode\":\"F007\",\"productName\":\"汇添富消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"博时基金\",\"manager\":\"经理张敏\",\"netValue\":2.5693,\"accumNetValue\":6.7041,\"establishDate\":\"2019-06-14\",\"fundSize\":366.64,\"riskLevel\":\"R1\",\"annualReturn\":12.62},{\"productCode\":\"F008\",\"productName\":\"嘉实消费基金\",\"fundType\":\"QDII\",\"fundCompany\":\"华夏基金\",\"manager\":\"经理陈伟\",\"netValue\":2.8711,\"accumNetValue\":7.1954,\"establishDate\":\"2018-08-22\",\"fundSize\":408.45,\"riskLevel\":\"R5\",\"annualReturn\":30.55},{\"productCode\":\"F012\",\"productName\":\"广发消费基金\",\"fundType\":\"混合型\",\"fundCompany\":\"易方达基金\",\"manager\":\"经理王伟\",\"netValue\":4.4664,\"accumNetValue\":9.6450,\"establishDate\":\"2018-12-17\",\"fundSize\":208.11,\"riskLevel\":\"R4\",\"annualReturn\":5.70},{\"productCode\":\"F013\",\"productName\":\"天弘消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"汇添富基金\",\"manager\":\"经理陈强\",\"netValue\":1.9162,\"accumNetValue\":5.5084,\"establishDate\":\"2022-07-09\",\"fundSize\":263.04,\"riskLevel\":\"R1\",\"annualReturn\":16.51},{\"productCode\":\"F015\",\"productName\":\"嘉实消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"招商基金\",\"manager\":\"经理李敏\",\"netValue\":3.1600,\"accumNetValue\":4.9152,\"establishDate\":\"2018-04-06\",\"fundSize\":461.75,\"riskLevel\":\"R1\",\"annualReturn\":57.16},{\"productCode\":\"F017\",\"productName\":\"南方消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"招商基金\",\"manager\":\"经理张娜\",\"netValue\":3.5054,\"accumNetValue\":6.5390,\"establishDate\":\"2016-01-13\",\"fundSize\":47.07,\"riskLevel\":\"R3\",\"annualReturn\":16.40},{\"productCode\":\"F025\",\"productName\":\"易方达消费基金\",\"fundType\":\"货币型\",\"fundCompany\":\"南方基金\",\"manager\":\"经理王敏\",\"netValue\":1.0803,\"accumNetValue\":1.0803,\"establishDate\":\"2016-01-25\",\"fundSize\":278.92,\"riskLevel\":\"R4\",\"annualReturn\":3.12},{\"productCode\":\"F026\",\"productName\":\"富国消费基金\",\"fundType\":\"QDII\",\"fundCompany\":\"天弘基金\",\"manager\":\"经理赵华\",\"netValue\":1.9653,\"accumNetValue\":5.6992,\"establishDate\":\"2022-05-30\",\"fundSize\":228.65,\"riskLevel\":\"R4\",\"annualReturn\":-17.29},{\"productCode\":\"F030\",\"productName\":\"招商消费基金\",\"fundType\":\"股票型\",\"fundCompany\":\"南方基金\",\"manager\":\"经理王华\",\"netValue\":0.8922,\"accumNetValue\":2.0338,\"establishDate\":\"2016-03-21\",\"fundSize\":21.24,\"riskLevel\":\"R3\",\"annualReturn\":-18.75},{\"productCode\":\"F033\",\"productName\":\"富国消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"汇添富基金\",\"manager\":\"经理赵华\",\"netValue\":2.7907,\"accumNetValue\":7.4834,\"establishDate\":\"2018-06-29\",\"fundSize\":153.72,\"riskLevel\":\"R3\",\"annualReturn\":56.19},{\"productCode\":\"F036\",\"productName\":\"华夏消费基金\",\"fundType\":\"QDII\",\"fundCompany\":\"天弘基金\",\"manager\":\"经理王强\",\"netValue\":2.8311,\"accumNetValue\":6.3100,\"establishDate\":\"2024-03-19\",\"fundSize\":299.52,\"riskLevel\":\"R3\",\"annualReturn\":9.90},{\"productCode\":\"F039\",\"productName\":\"易方达消费基金\",\"fundType\":\"债券型\",\"fundCompany\":\"嘉实基金\",\"manager\":\"经理赵娜\",\"netValue\":3.9690,\"accumNetValue\":11.1913,\"establishDate\":\"2016-01-12\",\"fundSize\":163.32,\"riskLevel\":\"R1\",\"annualReturn\":25.89},{\"productCode\":\"F050\",\"productName\":\"招商消费基金\",\"fundType\":\"QDII\",\"fundCompany\":\"天弘基金\",\"manager\":\"经理陈华\",\"netValue\":1.8815,\"accumNetValue\":3.4135,\"establishDate\":\"2018-02-09\",\"fundSize\":398.99,\"riskLevel\":\"R4\",\"annualReturn\":59.11}]\n";
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<ProductInfo> prodInfo = objectMapper.readValue(prodInfoList, new TypeReference<List<ProductInfo>>() {});
+        System.out.printf("产品信息：%s\n", prodInfo);
+    }
+
+}

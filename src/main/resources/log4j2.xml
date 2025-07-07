@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <!-- 定义日志格式 -->
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="SQL_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} | SQL 执行 | %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- 控制台输出 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <!-- 普通日志格式 -->
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <!-- 专门输出 SQL 的 Appender -->
+        <Console name="SqlConsole" target="SYSTEM_OUT">
+            <!-- SQL 日志特殊格式 -->
+            <PatternLayout pattern="${SQL_PATTERN}"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!-- MyBatis-Plus 核心日志 -->
+        <Logger name="com.baomidou.mybatisplus" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!-- Spring Boot 启动日志 -->
+        <Logger name="org.springframework.boot" level="ERROR"/>
+
+        <!-- Spring 框架日志 (可选) -->
+        <Logger name="org.springframework" level="ERROR"/>
+
+        <!-- 项目根包日志 -->
+        <Logger name="com.ai" level="INFO"/>
+
+        <!-- 根日志配置 -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
